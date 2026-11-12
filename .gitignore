@@ -1,0 +1,62 @@
+# ==========================================
+# ShopVDK - Root Monorepo .gitignore
+# ==========================================
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# IDE & Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+*.iml
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Build & Dependency Outputs (Java / Maven)
+**/target/
+**/*.class
+**/*.jar
+**/*.war
+**/*.ear
+**/*.nar
+**/.mvn/timing.properties
+
+# Build & Dependency Outputs (Node / Frontend)
+**/node_modules/
+**/dist/
+**/build/
+**/coverage/
+.npm
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Logs & Temporary files
+logs/
+*.log
+tmp/
+temp/
+
+# Docker Local Data Volumes (nếu có mount local)
+docker-data/
+postgres-data/
+
+# Local Setup & Instruction Prompts
+PROMPT_SETUP.md
+setup-report.md
+
+
