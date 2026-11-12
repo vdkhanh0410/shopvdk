@@ -24,10 +24,10 @@ shopvdk/
 │   ├── analysis/          # Phân tích ca sử dụng & luồng dữ liệu (Phase 02)
 │   ├── architecture/      # Thiết kế Database, API & kiến trúc (Phase 03)
 │   └── development/       # Quy chuẩn code & tiến độ phát triển
+├── .env.example           # File mẫu biến môi trường (copy thành .env)
 ├── docker-compose.yml     # Quản lý dịch vụ hạ tầng (PostgreSQL 17)
 ├── GEMINI.md              # Quy tắc làm việc và phân chia vai trò cho AI
 ├── PROMPT_SETUP.md        # Hướng dẫn chi tiết thiết lập dự án
-├── setup-report.md        # Báo cáo kết quả thiết lập môi trường ban đầu
 └── .gitignore             # Quy tắc loại trừ file cho Monorepo
 ```
 
@@ -35,7 +35,14 @@ shopvdk/
 
 ## 🚀 Khởi động Môi trường Phát triển (Local Dev Setup)
 
-### 1. Khởi động Cơ sở dữ liệu (PostgreSQL)
+### 1. Cấu hình biến môi trường
+Tạo file `.env` từ file mẫu:
+```bash
+cp .env.example .env
+```
+*(File `.env` đã được cấu hình trong `.gitignore`, tuyệt đối không commit thông tin nhạy cảm vào Git)*
+
+### 2. Khởi động Cơ sở dữ liệu (PostgreSQL)
 
 Yêu cầu máy đã cài đặt và khởi động Docker Desktop:
 
@@ -49,12 +56,7 @@ Kiểm tra container đang chạy:
 docker ps --filter "name=shopvdk-postgres"
 ```
 
-Thông tin kết nối cục bộ:
-- **Host**: `localhost`
-- **Port**: `5432`
-- **Database**: `shopvdk`
-- **Username**: `shopvdk`
-- **Password**: `shopvdk_dev_2026`
+Thông tin kết nối cục bộ được quản lý thông qua file `.env`. Mặc định cổng kết nối là `5432` và database là `shopvdk`.
 
 ---
 

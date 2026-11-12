@@ -54,9 +54,11 @@
 6. **Maintain documentation** — update docs when architecture, APIs, DB design, or business rules change
 7. **Never invent API Contracts** — verify against actual Backend code or API docs; use clearly-marked Mock Data if Backend isn't ready
 8. **Ask before high-impact changes** — architecture changes, large dependencies, destructive DB/Git operations require approval
+9. **Strict Security & Zero-Secret Exposure** — NEVER commit or expose passwords, API keys, secrets, or raw credentials in code, documentation, or commit history; always use `.env.example` templates and environment variables
 
 ## Communication
 - Communicate in **Vietnamese** with Project Owner
+- **Git Commit Messages**: MUST be written entirely in **Vietnamese** (e.g., `khởi tạo cấu hình môi trường ban đầu`, `bổ sung tài liệu phân tích nghiệp vụ`, etc.)
 - Use **English** for: source code, variable/class/function names, API naming, technical identifiers
 - Explain concepts step-by-step with practical examples
 - Distinguish essential vs. advanced knowledge

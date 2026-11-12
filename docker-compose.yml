@@ -7,15 +7,15 @@ services:
     container_name: shopvdk-postgres
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     environment:
-      POSTGRES_DB: shopvdk
-      POSTGRES_USER: shopvdk
-      POSTGRES_PASSWORD: shopvdk_dev_2026
+      POSTGRES_DB: ${POSTGRES_DB:-shopvdk}
+      POSTGRES_USER: ${POSTGRES_USER:-shopvdk}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-shopvdk_dev_2026}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U shopvdk -d shopvdk"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-shopvdk} -d ${POSTGRES_DB:-shopvdk}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,4 +23,3 @@ services:
 volumes:
   postgres_data:
     driver: local
-
