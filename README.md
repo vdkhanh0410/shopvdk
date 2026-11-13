@@ -1,6 +1,6 @@
 # ShopVDK — Sports E-commerce Platform
 
-Nền tảng thương mại điện tử chuyên kinh doanh dụng cụ và trang phục thể thao (Cầu lông, Tennis, Pickleball), được xây dựng theo kiến trúc **Modular Monolith** nhằm rèn luyện tư duy và kỹ năng Software Engineering thực chiến.
+Nền tảng thương mại điện tử chuyên kinh doanh dụng cụ và trang phục thể thao (phiên bản MVP tập trung chuyên sâu vào **Cầu Lông**, thiết kế kiến trúc mở sẵn sàng mở rộng sang Tennis, Pickleball), được xây dựng theo mô hình **Modular Monolith** nhằm rèn luyện tư duy và kỹ năng Software Engineering thực chiến.
 
 ---
 
