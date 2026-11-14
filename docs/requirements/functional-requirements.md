@@ -44,7 +44,8 @@ flowchart TD
   - Mật khẩu phải được băm bảo mật (BCrypt) trước khi lưu trữ.
   - Phân quyền mặc định là `ROLE_CUSTOMER`.
 - **FR-AUTH-02: Đăng nhập & Cấp Token (Login)**
-  - Đăng nhập bằng Email/Tài khoản và Mật khẩu.
+  - Cho phép người dùng đăng nhập linh hoạt bằng **Số điện thoại HOẶC Email**, kèm Mật khẩu.
+  - Backend thực hiện truy vấn kép trên chỉ mục `email` và `phone` để xác thực danh tính.
   - Trả về JSON Web Token (JWT) cho các yêu cầu cần xác thực.
 - **FR-AUTH-03: Đăng nhập Quản trị (Admin Login)**
   - Cổng đăng nhập bảo mật riêng cho nhân sự có quyền `ROLE_ADMIN`.
@@ -79,100 +80,104 @@ flowchart TD
 
 ### MODULE 3: TÌM KIẾM VÀ BỘ LỌC (FR-SEARCH)
 
-> [!NOTE]
-> **Nguồn dữ liệu:** Bộ lọc bên dưới được điều tra thực tế từ cấu trúc sidebar của ShopVNB (shopvnb.com) qua tìm kiếm web ngày 13/11/2026, sau đó được tinh chỉnh cho phù hợp phạm vi ShopVDK (loại bỏ bộ lọc chi nhánh, bổ sung cho Pickleball & Tennis theo đặc thù ngành).
+> [!IMPORTANT]
+> **Tích hợp Nghiệp vụ Thực tế:**
+> Bộ lọc dưới đây được trích xuất trực tiếp từ tài liệu nghiệp vụ ShopVNB và chuẩn hóa 100% cho hệ sinh thái sản phẩm **Cầu Lông** của dự án ShopVDK.
+> - Tổ chức theo mô hình **2 lớp**: (1) Bộ lọc chung xuất hiện ở mọi trang danh mục; (2) Bộ lọc chuyên biệt cho từng loại danh mục sản phẩm cầu lông.
+> - **Đã loại bỏ:** Tiêu chí "Chi nhánh" (vì ShopVDK quản lý tồn kho tại kho trung tâm, không phân mạng lưới chi nhánh như ShopVNB).
 
 - **FR-SEARCH-01: Tìm kiếm theo từ khóa (Text Search)**
   - Tìm kiếm theo tên sản phẩm, thương hiệu hoặc mã sản phẩm.
   - Xử lý trạng thái rỗng (Empty State) khi không tìm thấy kết quả phù hợp.
 
 - **FR-SEARCH-02: Bộ lọc Động theo Danh mục (Category-specific Dynamic Filtering)**
-  - **Nguyên tắc nghiệp vụ:** Khi khách hàng duyệt vào một Danh mục cụ thể, thanh bộ lọc (Filter Sidebar) sẽ tự động thay đổi để chỉ hiển thị các tiêu chí lọc phù hợp với đặc thù kỹ thuật của danh mục đó. Không được hiển thị các tiêu chí không liên quan (ví dụ: không hiện "Độ cứng đũa vợt" khi khách đang xem Giày).
+  - **Nguyên tắc nghiệp vụ:** Khi khách hàng duyệt vào một Danh mục cụ thể, Filter Sidebar sẽ tự động điều chỉnh hiển thị đúng các tiêu chí của danh mục đó (không hiện thuộc tính của danh mục khác).
 
 ---
 
-#### A. BỘ LỌC DÙNG CHUNG (Áp dụng cho MỌI danh mục)
+#### A. BỘ LỌC CHUNG (Áp dụng cho MỌI danh mục)
 
-| STT | Nhóm lọc | Giá trị | Ghi chú |
-|---|---|---|---|
-| 1 | **Thương hiệu** | *(Tùy danh mục — xem bảng riêng)* | Cho phép chọn nhiều hãng cùng lúc (multi-select) |
-| 2 | **Mức giá** | Dưới 500.000đ · 500.000đ – 1 triệu · 1 – 2 triệu · 2 – 3 triệu · Trên 3 triệu | Khoảng giá phù hợp ngành thể thao VN |
-| 3 | **Tình trạng hàng** | Còn hàng / Tất cả | Mặc định hiển thị tất cả |
+| STT | Nhóm lọc | Mô tả | Giá trị lọc | Vị trí lưu trữ DB |
+|---|---|---|---|---|
+| 1 | **Thương hiệu** | Lọc theo nhãn hiệu nhà sản xuất | Yonex · Victor · Lining · Mizuno · Apacs · Kumpoo · Kawasaki · VS · Taro · Beyono... | `products.brand_id` |
+| 2 | **Mức giá** | Phân khúc ngân sách định sẵn | Dưới 500.000đ · 500.000đ – 1 triệu · 1 – 2 triệu · 2 – 3 triệu · Trên 3 triệu | `product_variants.price` |
+| 3 | **Tình trạng hàng** | Trạng thái tồn kho | Còn hàng trong kho · Tất cả | `product_variants.stock_quantity > 0` |
 
 ---
 
 #### B. BỘ LỌC VỢT CẦU LÔNG (`/categories/vot-cau-long`)
 
-| STT | Nhóm lọc | Giá trị |
-|---|---|---|
-| 1 | Thương hiệu | Yonex · Victor · Lining · Mizuno · Apacs · Proace · Fleet |
-| 2 | Mức giá | *(Dùng chung)* |
-| 3 | **Trọng lượng (U)** | 2U (90-94g) · 3U (85-89g) · 4U (80-84g) · 5U (75-79g) |
-| 4 | **Độ cứng đũa vợt** | Dẻo (Flexible) · Trung bình (Medium) · Cứng (Stiff) · Siêu cứng (Extra Stiff) |
-| 5 | **Điểm cân bằng** | Nặng đầu (Thiên công) · Cân bằng (Công thủ toàn diện) · Nhẹ đầu (Thiên thủ / phản tạt) |
-| 6 | **Trình độ chơi** | Người mới chơi · Chơi phong trào · Bán chuyên · Chuyên nghiệp |
+| STT | Nhóm lọc | Mô tả nghiệp vụ | Giá trị chi tiết | Thuộc tính JSONB |
+|---|---|---|---|---|
+| 1 | **Trọng lượng (Weight)** | Phân nhóm U/F/2F theo lực cổ tay | **2U** (90-94g) · **3U** (85-89g) · **4U** (80-84g) · **5U** (75-79g) · **F** (70-74g) · **2F** (<70g) | `product_variants.attributes.weight` *(SKU)* |
+| 2 | **Điểm cân bằng** | Xác định độ đầm đầu vợt | **Nhẹ đầu** (Thủ/phản tạt) · **Cân bằng** (Công thủ toàn diện) · **Hơi nặng đầu** · **Nặng đầu** (Tấn công/đập cầu) | `products.specifications.balance` |
+| 3 | **Độ cứng đũa** | Mức độ uốn thân & trợ lực | **Dẻo** (Trợ lực tốt) · **Trung bình** · **Cứng** · **Siêu cứng** (Kiểm soát cao) | `products.specifications.stiffness` |
+| 4 | **Phong cách chơi** | Lối đánh của người chơi | **Tấn công** · **Công thủ toàn diện** · **Phòng thủ / Phản tạt** | `products.specifications.play_style` |
+| 5 | **Nội dung chơi** | Thể thức thi đấu phù hợp | **Đánh đơn** · **Đánh đôi** · **Cả hai** | `products.specifications.game_type` |
+| 6 | **Trình độ chơi** | Trình độ kinh nghiệm | **Mới chơi** · **Trung bình (Phong trào)** · **Khá / Tốt** · **Chuyên nghiệp** | `products.specifications.player_level` |
 
 ---
 
 #### C. BỘ LỌC GIÀY CẦU LÔNG (`/categories/giay-cau-long`)
 
-| STT | Nhóm lọc | Giá trị |
-|---|---|---|
-| 1 | Thương hiệu | Yonex · Lining · Victor · Mizuno · Kawasaki · Kumpoo |
-| 2 | Mức giá | Dưới 500.000đ · 500.000đ – 1 triệu · 1 – 2 triệu · Trên 2 triệu |
-| 3 | **Size giày (EU)** | 36 · 37 · 38 · 39 · 40 · 40.5 · 41 · 42 · 42.5 · 43 · 44 · 44.5 · 45 |
-| 4 | **Giới tính** | Nam · Nữ · Unisex |
+| STT | Nhóm lọc | Mô tả nghiệp vụ | Giá trị chi tiết | Thuộc tính JSONB |
+|---|---|---|---|---|
+| 1 | **Size giày (EU)** | Kích cỡ chân người mua | **36 · 37 · 38 · 39 · 40 · 40.5 · 41 · 42 · 42.5 · 43 · 44 · 44.5 · 45** | `product_variants.attributes.size` *(SKU)* |
+| 2 | **Đối tượng** | Nhóm người dùng phù hợp | **Nam** · **Nữ** · **Trẻ em** · **Unisex** | `products.specifications.target_audience` |
+| 3 | **Form giày** | Độ rộng bàn chân | **Slim** (Chân thon) · **Unisex** (Tiêu chuẩn) · **Wide** (Chân bè ngang 3E/4E) | `products.specifications.shoe_fit` |
+| 4 | **Điểm nổi bật** | Đặc tính công nghệ giày | **Bám sân tốt** · **Chống lật cổ chân** · **Đệm êm giảm chấn (Cushion)** · **Thoáng khí** · **Siêu nhẹ** | `products.specifications.highlights` |
+| 5 | **Thể loại chơi** | Mặt sân phù hợp | **Trong nhà (Thảm PVC/gỗ)** · **Ngoài trời (Bê tông/xi măng)** · **Cả hai** | `products.specifications.surface_type` |
+| 6 | **Phân khúc** | Cấp độ dòng sản phẩm | **Tầm thấp (Giá rẻ)** · **Trung cấp (Phong trào)** · **Cao cấp (Chuyên nghiệp)** | `products.specifications.tier` |
 
 ---
 
-#### D. BỘ LỌC TRANG PHỤC THỂ THAO (`/categories/ao-cau-long`, `/categories/quan-cau-long`)
+#### D. BỘ LỌC TÚI VỢT CẦU LÔNG (`/categories/tui-vot-cau-long`)
 
-| STT | Nhóm lọc | Giá trị |
-|---|---|---|
-| 1 | Thương hiệu | Yonex · Lining · Victor · Taro · Beyono |
-| 2 | Mức giá | Dưới 200.000đ · 200.000đ – 500.000đ · 500.000đ – 1 triệu · Trên 1 triệu |
-| 3 | **Giới tính** | Nam · Nữ · Unisex |
-| 4 | **Size quần áo** | S · M · L · XL · XXL · XXXL |
-| 5 | **Màu sắc** | Đen · Trắng · Xanh dương · Xanh lá · Đỏ · Vàng · Cam · Hồng · Tím · Xám |
-
----
-
-#### E. BỘ LỌC CƯỚC CẦU LÔNG (`/categories/cuoc-cau-long`)
-
-| STT | Nhóm lọc | Giá trị |
-|---|---|---|
-| 1 | Thương hiệu | Yonex · Lining · Victor · VS (Venson) · Gosen · Kizuna |
-| 2 | Mức giá | Dưới 100.000đ · 100.000đ – 180.000đ · Trên 180.000đ |
-| 3 | **Đường kính dây** | Siêu mỏng (0.61 – 0.65mm) · Trung bình (0.66 – 0.68mm) · Dày / Bền (0.69 – 0.70mm) |
-| 4 | **Đặc tính nổi trội** | Trợ lực / Nảy tốt · Âm nổ to · Độ bền cao · Cảm giác kiểm soát · Xoáy cầu |
+| STT | Nhóm lọc | Mô tả nghiệp vụ | Giá trị chi tiết | Thuộc tính JSONB |
+|---|---|---|---|---|
+| 1 | **Số ngăn lớn** | Sức chứa theo số ngăn | **1 ngăn lớn** · **2 ngăn lớn** (3-6 cây) · **3 ngăn lớn** (6-9 cây) | `products.specifications.compartment_count` |
+| 2 | **Thể loại túi** | Phân loại kiểu dáng túi | **Túi chữ nhật (Bao kiếm)** · **Túi du lịch xách tay** · **Túi vuông thời trang** | `products.specifications.bag_type` |
+| 3 | **Điểm nổi bật** | Tính năng tiện ích đặc thù | **Ngăn cách nhiệt (Thermal)** · **Ngăn để giày riêng** · **Vải chống thấm nước** | `products.specifications.highlights` |
+| 4 | **Đối tượng** | Nhóm người dùng | **Nam** · **Nữ** · **Unisex** | `products.specifications.target_audience` |
 
 ---
 
-#### F. BỘ LỌC TÚI / BALO CẦU LÔNG (`/categories/tui-cau-long`)
+#### E. BỘ LỌC BALO CẦU LÔNG (`/categories/balo-cau-long`)
 
-| STT | Nhóm lọc | Giá trị |
-|---|---|---|
-| 1 | Thương hiệu | Yonex · Lining · Victor · Kumpoo · Mizuno |
-| 2 | Mức giá | Dưới 300.000đ · 300.000đ – 700.000đ · Trên 700.000đ |
-| 3 | **Loại túi** | Túi vợt 3 ngăn · Túi vợt 2 ngăn · Balo cầu lông · Túi xách đa năng |
-
----
-
-#### G. BỘ LỌC PHỤ KIỆN CẦU LÔNG (`/categories/phu-kien-cau-long`)
-
-| STT | Nhóm lọc | Giá trị |
-|---|---|---|
-| 1 | Thương hiệu | Yonex · Lining · Victor · VS · Kumpoo |
-| 2 | Mức giá | Dưới 50.000đ · 50.000đ – 150.000đ · Trên 150.000đ |
-| 3 | **Loại phụ kiện** | Quấn cán (Overgrip) · Quấn lót cán · Vớ (Tất) thể thao · Băng chặn mồ hôi · Khác |
+| STT | Nhóm lọc | Mô tả nghiệp vụ | Giá trị chi tiết | Thuộc tính JSONB |
+|---|---|---|---|---|
+| 1 | **Thể loại balo** | Kiểu dáng thiết kế | **Balo đứng truyền thống** · **Balo vuông thể thao** · **Balo thời trang đa năng** | `products.specifications.backpack_type` |
+| 2 | **Điểm nổi bật** | Tiện ích chuyên dụng | **Ngăn cài vợt riêng** · **Ngăn để giày riêng bên dưới** · **Đệm lưng quai đeo trợ lực** · **Chống thấm nước** | `products.specifications.highlights` |
+| 3 | **Đối tượng** | Nhóm người dùng | **Nam** · **Nữ** · **Trẻ em** · **Unisex** | `products.specifications.target_audience` |
 
 ---
 
-#### H. BỘ LỌC DỰ PHÒNG MỞ RỘNG SAU MVP (POST-MVP: TENNIS & PICKLEBALL)
-> [!NOTE]
-> Các bộ lọc dưới đây **không triển khai trong MVP** để tránh Scope Creep. Tuy nhiên, nhờ thiết kế thuộc tính động bằng **PostgreSQL JSONB**, hệ thống Backend và DB hoàn toàn sẵn sàng kích hoạt các nhóm lọc này trong tương lai chỉ bằng việc thêm dữ liệu vào bảng danh mục và sản phẩm:
-> - **Vợt Tennis (Giai đoạn 2):** Trọng lượng (<275g, 275-295g, >300g), Cỡ đầu vợt (<98 sq.in, 98-102 sq.in, >105 sq.in), Hãng (Wilson, Babolat, Head...).
-> - **Vợt Pickleball (Giai đoạn 2):** Trọng lượng (<7.8 oz, 7.8-8.2 oz, >8.3 oz), Độ dày lõi mặt vợt (<14mm, 14-16mm), Hãng (Joola, Selkirk, Sypik...).
+#### F. BỘ LỌC ÁO, QUẦN VÀ VÁY CẦU LÔNG (`/categories/quan-ao-cau-long`)
+
+| STT | Nhóm lọc | Mô tả nghiệp vụ | Giá trị chi tiết | Thuộc tính JSONB |
+|---|---|---|---|---|
+| 1 | **Size trang phục** | Kích cỡ theo vóc dáng | **XS · S · M · L · XL · XXL · XXXL** | `product_variants.attributes.size` *(SKU)* |
+| 2 | **Đối tượng** | Giới tính và độ tuổi | **Nam** · **Nữ** · **Trẻ em** · **Unisex** | `products.specifications.target_audience` |
+| 3 | **Thể loại** | Loại trang phục thi đấu/tập | **Áo thun cộc tay** · **Áo có cổ (Polo)** · **Quần soóc/đùi** · **Váy / Quần váy nữ** · **Áo khoác gió** | `products.specifications.apparel_type` |
+| 4 | **Màu sắc** | Màu sắc chủ đạo | **Đen · Trắng · Xanh dương · Đỏ · Vàng · Cam · Xanh lá · Hồng · Tím · Xám** | `product_variants.attributes.color` *(SKU)* |
+
+---
+
+#### G. BỘ LỌC CƯỚC CẦU LÔNG (`/categories/cuoc-cau-long`)
+
+| STT | Nhóm lọc | Mô tả nghiệp vụ | Giá trị chi tiết | Thuộc tính JSONB |
+|---|---|---|---|---|
+| 1 | **Đường kính dây (Gauge)** | Độ dày sợi cước đan vợt | **Siêu mỏng** (0.61 – 0.65mm) · **Trung bình** (0.66 – 0.68mm) · **Dày / Bền** (0.69 – 0.70mm) | `products.specifications.gauge_mm` |
+| 2 | **Đặc tính nổi trội** | Trải nghiệm khi đánh cầu | **Trợ lực / Nảy cầu** · **Âm nổ to vang** · **Độ bền cao** · **Cảm giác kiểm soát** · **Tạo xoáy** | `products.specifications.features` |
+| 3 | **Màu dây / Quy cách** | Tùy chọn đóng gói | Màu sắc (Trắng, Vàng, Cam, Đen...) · Quy cách (Vỉ đơn 10m, Cuộn lớn 200m) | `product_variants.attributes` *(SKU)* |
+
+---
+
+#### H. BỘ LỌC PHỤ KIỆN CẦU LÔNG (`/categories/phu-kien-cau-long`)
+
+| STT | Nhóm lọc | Mô tả nghiệp vụ | Giá trị chi tiết | Thuộc tính JSONB |
+|---|---|---|---|---|
+| 1 | **Thể loại phụ kiện** | Phân loại trang bị bổ trợ | **Quấn cán cao su (Overgrip)** · **Quấn cán vải (Towel grip)** · **Quấn lót cốt cán (Cushion wrap)** · **Vớ / Tất thể thao** · **Băng chặn mồ hôi cổ tay/trán** · **Móc chìa khóa** | `products.specifications.accessory_type` |
 
 - **FR-SEARCH-03: Sắp xếp (Sorting)**
   - Giá tăng dần, Giá giảm dần, Mới nhất, Bán chạy nhất.

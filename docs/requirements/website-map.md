@@ -82,7 +82,7 @@ graph TD
 
 | STT | Tên Trang | URL Path | Mục đích & Thành phần cốt lõi | Quyền truy cập |
 |---|---|---|---|---|
-| 9 | **Trang Đăng nhập** | `/login` | - Form đăng nhập (Email/Username + Password).<br>- Liên kết chuyển sang Đăng ký hoặc Quên mật khẩu. | Chưa đăng nhập |
+| 9 | **Trang Đăng nhập** | `/login` | - Form đăng nhập (Số điện thoại hoặc Email + Password).<br>- Liên kết chuyển sang Đăng ký hoặc Quên mật khẩu. | Chưa đăng nhập |
 | 10 | **Trang Đăng ký** | `/register` | - Form tạo tài khoản mới: Họ tên, Email, Số điện thoại, Mật khẩu, Xác nhận mật khẩu.<br>- Kiểm tra dữ liệu đầu vào (Validation). | Chưa đăng nhập |
 | 11 | **Hồ sơ Cá nhân** | `/account/profile` | - Xem và cập nhật thông tin cá nhân.<br>- Đổi mật khẩu.<br>- Quản lý sổ địa chỉ giao hàng nhận sẵn (Default Address). | Yêu cầu đăng nhập (`CUSTOMER`) |
 | 12 | **Lịch sử Đơn hàng** | `/account/orders` | - Danh sách đơn hàng đã mua kèm trạng thái (Chờ duyệt, Đang giao, Hoàn thành, Đã hủy).<br>- Xem chi tiết từng đơn hàng (`/account/orders/:orderCode`). | Yêu cầu đăng nhập (`CUSTOMER`) |
